@@ -1,0 +1,52 @@
+{
+  "name": "pv-simulator-nodejs",
+  "version": "1.0.0",
+  "description": "A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS) simulator built with pure Node.js, providing Modbus TCP servers and real-time web dashboard.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "build": "echo 'No build step required for Node.js'",
+    "start:prod": "NODE_ENV=production node src/server.js"
+  },
+  "keywords": [
+    "pv",
+    "solar",
+    "battery",
+    "modbus",
+    "simulator",
+    "energy",
+    "renewable"
+  ],
+  "author": "PV Simulator Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "modbus-serial": "^8.0.16",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/pv-simulator-nodejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/pv-simulator-nodejs/issues"
+  },
+  "homepage": "https://github.com/your-username/pv-simulator-nodejs#readme"
+}

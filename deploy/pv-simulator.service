@@ -1,0 +1,44 @@
+[Unit]
+Description=PV Simulator - Solar and Battery Energy Storage System
+Documentation=https://github.com/your-repo/pv-simulator
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=oct-dev
+Group=oct-dev
+WorkingDirectory=/home/oct-dev/pv-simulator
+ExecStart=/usr/bin/node src/server.js
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pv-simulator
+
+# Environment variables
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=PV1_MODBUS_PORT=10502
+Environment=PV2_MODBUS_PORT=10503
+Environment=BATTERY_MODBUS_PORT=10504
+Environment=LOG_LEVEL=info
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/oct-dev/pv-simulator
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+# WantedBy=multi-user.target  # Disabled - manual start only

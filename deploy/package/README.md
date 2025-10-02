@@ -1,0 +1,360 @@
+# PV Simulator - Pure Node.js Implementation
+
+A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS) simulator built with pure Node.js, providing Modbus TCP servers and real-time web dashboard.
+
+## 🚀 **What's Included**
+
+### **Dual PV System Simulation**
+- **PV System 1**: 50kW Huawei inverter simulation (Port 10502)
+- **PV System 2**: 50kW Huawei inverter simulation (Port 10503)
+- **Battery System**: 100kW PCS with 200kWh capacity (Port 10504)
+- **Real-time Web Dashboard**: Live monitoring and control interface
+- **REST API**: Programmatic access to all system data
+
+### **Solar Calculator Features**
+- **Power Generation**: 50kW maximum per inverter
+- **MPPT Configuration**: 7 active channels (600V nominal) out of 24 total
+- **Grid Parameters**: 240V ± 1%, 50Hz ± 0.5%
+- **Energy Yield Tracking**: Daily and accumulated energy monitoring
+- **Temperature Simulation**: Realistic thermal modeling
+- **Alarm System**: 48 different alarm types with bitfield generation
+
+### **Battery System Features**
+- **PCS Capacity**: 100kW Power Conversion System
+- **Battery Capacity**: 200kWh energy storage
+- **Load Management**: Varying load between 50-80kW
+- **Grid Interaction**: Charging/discharging based on load demand
+- **SOC Tracking**: State of Charge monitoring and management
+
+## 🌐 **Access URLs**
+
+- **Web Dashboard**: http://localhost:3000
+- **REST API**: http://localhost:3000/api
+- **Modbus PV1**: localhost:10502
+- **Modbus PV2**: localhost:10503
+- **Modbus Battery**: localhost:10504
+
+## 📋 **Prerequisites**
+
+- Node.js 16+ 
+- npm 8+
+- Git
+
+## 🚀 **Quick Start**
+
+1. **Clone and Install**
+   ```bash
+   git clone <repository-url>
+   cd pv-simulator-nodejs
+   npm install
+   ```
+
+2. **Configure Environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+3. **Start the Simulator**
+   ```bash
+   npm start
+   ```
+
+4. **Access the Dashboard**
+   - Open http://localhost:3000 in your browser
+   - Monitor real-time data from all systems
+
+## 🔧 **Configuration**
+
+### **System Configuration**
+Edit `config/system-config.js` to modify:
+- Solar panel specifications
+- Inverter parameters
+- Battery system settings
+- Load profiles
+
+### **Modbus Configuration**
+Edit `config/modbus-config.js` to modify:
+- Port numbers
+- Register mappings
+- Data scaling factors
+
+## 📊 **Modbus Register Maps**
+
+### **PV Systems (Ports 10502, 10503)**
+- **Function Code**: 0x04 (Read Input Registers)
+- **Data Type**: All registers are Input Registers (read-only)
+- **Byte Order**: Big-Endian
+- **Starting Address**: 32016
+
+| Register | Parameter | Units | Scaling | Range |
+|----------|-----------|-------|---------|-------|
+| 32016-32039 | MPPT String Voltages | V | 0.1 | 0-1000V |
+| 32017-32040 | MPPT String Currents | A | 0.1 | 0-100A |
+| 32064-32065 | Input Power | W | 1 | 0-50000W |
+| 32066 | Input Voltage | V | 0.1 | 0-1000V |
+| 32067 | Input Current | A | 0.1 | 0-100A |
+| 32068-32069 | Output Power | W | 1 | 0-50000W |
+| 32070 | Line Voltage VAB | V | 0.1 | 0-500V |
+| 32071 | Line Voltage VBC | V | 0.1 | 0-500V |
+| 32072 | Line Voltage VCA | V | 0.1 | 0-500V |
+| 32073-32074 | Phase A Current | A | 0.1 | 0-250A |
+| 32075-32076 | Phase B Current | A | 0.1 | 0-250A |
+| 32077-32078 | Phase C Current | A | 0.1 | 0-250A |
+| 32079 | Grid Frequency | Hz | 0.01 | 45-55Hz |
+| 32080 | Inverter Temperature | °C | 0.1 | -40 to 80°C |
+| 32081 | Input Temperature | °C | 0.1 | -40 to 80°C |
+| 32082 | Boost Temperature | °C | 0.1 | -40 to 80°C |
+| 32083 | Inverter Efficiency | % | 0.1 | 0-100% |
+| 32084 | Input Efficiency | % | 0.1 | 0-100% |
+| 32085 | Output Efficiency | % | 0.1 | 0-100% |
+| 32086 | Grid Voltage | V | 0.1 | 0-500V |
+| 32087 | Grid Current | A | 0.1 | 0-250A |
+| 32088 | Grid Power | W | 1 | 0-50000W |
+| 32089 | Grid Frequency | Hz | 0.01 | 45-55Hz |
+| 32090 | Grid Power Factor | - | 0.01 | 0-1 |
+| 32091-32092 | Startup Time | s | 1 | 0-86400s |
+| 32093-32094 | Shutdown Time | s | 1 | 0-86400s |
+| 32095-32096 | Total Runtime | s | 1 | 0-31536000s |
+| 32097-32098 | Total Energy | kWh | 0.1 | 0-9999999.9kWh |
+| 32099-32100 | Daily Energy | kWh | 0.01 | 0-999.99kWh |
+| 32101-32102 | Monthly Energy | kWh | 0.1 | 0-999999.9kWh |
+| 32103-32104 | Yearly Energy | kWh | 0.1 | 0-999999.9kWh |
+| 32105-32106 | Accumulated Energy | kWh | 0.1 | 0-9999999.9kWh |
+| 32107-32108 | Daily Energy Yield | kWh | 0.01 | 0-999.99kWh |
+| 32109-32110 | Monthly Energy Yield | kWh | 0.1 | 0-999999.9kWh |
+| 32111-32112 | Yearly Energy Yield | kWh | 0.1 | 0-999999.9kWh |
+| 32113-32114 | Accumulated Energy Yield | kWh | 0.1 | 0-9999999.9kWh |
+
+### **Battery System (Port 10504)**
+- **Function Code**: 0x04 (Read Input Registers)
+- **Data Type**: All registers are Input Registers (read-only)
+- **Byte Order**: Big-Endian
+- **Starting Address**: 30002
+
+| Register | ID | Parameter | Description | Units | Scaling | Range | Bit Details |
+|----------|----|-----------|-------------|-------|---------|-------|-------------|
+| 30002 | 0001 | System Voltage | Average value | V | 0.1 | - | System Voltage |
+| 30003 | 0002 | System Current | Summation value (2's complement) | A | 1 | - | System Current |
+| 30004 | 0003 | System SOC | Average value | % | 0.1 | 0-100 | System SOC |
+| 30005 | 0004 | System SOH | Minimum SOH value among racks | % | 0.1 | 0-100 | System SOH |
+| 30006 | 0005 | Reserved | - | - | - | - | Reserved |
+| 30007 | 0006 | Max Cell Voltage | Maximum cell voltage in system | mV | 1 | - | Maximum Cell Voltage of System |
+| 30008 | 0007 | Min Cell Voltage | Minimum cell voltage in system | mV | 1 | - | Minimum Cell Voltage of System |
+| 30009 | 0008 | Max Cell Temperature | Maximum cell temperature (2's complement) | °C | 0.01 | - | Maximum Cell Temperature of System |
+| 30010 | 0009 | Min Cell Temperature | Minimum cell temperature (2's complement) | °C | 0.01 | - | Minimum Cell Temperature of System |
+| 30011 | 000A | Major Protection #4 | System protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30012 | 000B | Major Protection #3 | System protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30013 | 000C | Major Protection #2 | System protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30014 | 000D | Major Protection #1 | System protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30015 | 000E | Minor Protection #4 | System minor protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30016 | 000F | Minor Protection #3 | System minor protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30017 | 0010 | Minor Protection #2 | System minor protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30018 | 0011 | Minor Protection #1 | System minor protection flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30019 | 0012 | Alarm #4 | System alarm flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30020 | 0013 | Alarm #3 | System alarm flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30021 | 0014 | Alarm #2 | System alarm flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30022 | 0015 | Alarm #1 | System alarm flags | bit | 1 | - | See Protection & Alarm Bit Fields table |
+| 30023 | 0016 | Reserved | - | - | - | - | Reserved |
+| 30024 | 0017 | Reserved | - | - | - | - | Reserved |
+| 30025 | 0018 | Watchdog Response | Inverts watchdog query request value | dec | 1 | - | Watchdog Response |
+| 30026 | 0019 | System Heartbeat | Increases by 1 every second (0-999) | dec | 1 | 0-999 | System Heartbeat |
+| 30027 | 001A | Connecting Status | MSB: Racks in Service, LSB: Total Rack Count | dec | 1 | 1-24 | Number of Racks in Service, Total Rack Count |
+| 30028 | 001B | Service Voltage | Average voltage of connected racks | V | 0.1 | - | Service Voltage(Connected) |
+| 30029 | 001C | Service SOC | Average SOC of all racks | % | 0.1 | 0-100 | Service SOC(Connected) |
+| 30030 | 001D | Digital I/O Status | MSB: Output Port, LSB: Input Port | bit | 1 | - | Output: Reserved(5), Output_2, Output_1, Output_0, Reserved(3); Input: System Reset Button, Input_0: MCCB Trip, Reserved(3) |
+
+### **Rack-Level Monitoring (Registers 30041-30090)**
+| Register | ID | Parameter | Description | Units | Scaling | Range | Bit Details |
+|----------|----|-----------|-------------|-------|---------|-------|-------------|
+| 30041 | 0028 | Rack Voltage | Final output voltage on battery side | V | 0.1 | - | Rack Voltage |
+| 30042 | 0029 | String #1 Rack Voltage | String #1 rack output voltage | V | 0.1 | - | String #1 Rack Voltage |
+| 30046 | 002D | Rack Current (Real) | Current sensing value (2's complement) | A | 0.1 | - | Rack Current (Real) |
+| 30047 | 002E | String #1 Rack Current | String #1 rack current (2's complement) | A | 0.1 | - | String #1 Rack Current |
+| 30049 | 0030 | Rack Current (Average) | 3sec moving average current (2's complement) | A | 0.1 | - | Rack Current (Average) |
+| 30050 | 0031 | Rack Mode | Operating mode (0:None/1:Init/2:Offline/3:Online) | dec | 1 | 0-3 | Rack Mode |
+| 30051 | 0032 | Rack SOC | Rack State of Charge | % | 0.1 | 0-100 | Rack SOC |
+| 30052 | 0033 | Rack SOH | Rack State of Health | % | 0.1 | 0-100 | Rack SOH |
+| 30053 | 0034 | Major Protection #4 | Rack protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30054 | 0035 | Major Protection #3 | Rack protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30055 | 0036 | Major Protection #2 | Rack protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30056 | 0037 | Major Protection #1 | Rack protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30057 | 0038 | Minor Protection #4 | Rack minor protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30058 | 0039 | Minor Protection #3 | Rack minor protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30059 | 003A | Minor Protection #2 | Rack minor protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30060 | 003B | Minor Protection #1 | Rack minor protection flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30061 | 003C | Alarm #4 Summary | Rack alarm flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30062 | 003D | Alarm #3 Summary | Rack alarm flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30063 | 003E | Alarm #2 Summary | Rack alarm flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30064 | 003F | Alarm #1 Summary | Rack alarm flags | bit | 1 | - | See Rack Protection & Alarm Bit Fields table |
+| 30065 | 0040 | Max (#1) Cell Voltage | Maximum (#1) cell voltage in rack | mV | 1 | - | Maximum (#1) Cell Voltage Value |
+| 30067 | 0042 | Max (#2) Cell Voltage | Maximum (#2) cell voltage in rack | mV | 1 | - | Maximum (#2) Cell Voltage Value |
+| 30069 | 0044 | Average Cell Voltage | Average cell voltage in rack | mV | 1 | - | Average Cell Voltage Value |
+| 30070 | 0045 | Min (#2) Cell Voltage | Minimum (#2) cell voltage in rack | mV | 1 | - | Minimum (#2) Cell Voltage Value |
+| 30072 | 0047 | Min (#1) Cell Voltage | Minimum (#1) cell voltage in rack | mV | 1 | - | Minimum (#1) Cell Voltage Value |
+| 30074 | 0049 | Max (#1) Cell Temperature | Maximum (#1) cell temperature in rack | °C | 0.01 | - | Maximum (#1) Cell Temperature Value |
+| 30076 | 004B | Max (#2) Cell Temperature | Maximum (#2) cell temperature in rack | °C | 0.01 | - | Maximum (#2) Cell Temperature Value |
+| 30078 | 004D | Average Cell Temperature | Average cell temperature in rack | °C | 0.01 | - | Average Cell Temperature Value |
+| 30079 | 004E | Min (#2) Cell Temperature | Minimum (#2) cell temperature in rack | °C | 0.01 | - | Minimum (#2) Cell Temperature Value |
+| 30081 | 0050 | Min (#1) Cell Temperature | Minimum (#1) cell temperature in rack | °C | 0.01 | - | Minimum (#1) Cell Temperature Value |
+| 30083 | 0052 | Rack Heartbeat | Increments every second (0-255) | dec | 1 | 0-255 | Rack heartbeat |
+| 30085 | 0054 | Rack Switch Control | Switch control information | bit | 1 | - | Reserved(16) |
+| 30086 | 0055 | Rack Switch Sensor | Switch sensor information | bit | 1 | - | Reserved(16) |
+| 30087 | 0056 | Rack External Sensor | External sensor information | bit | 1 | - | Reserved(16) |
+| 30090 | 0059 | Rack External Indicator | External indicator status | bit | 1 | - | Reserved(12), major protection, minor protection, discharge, charge |
+
+### **System Protection & Alarm Bit Fields**
+
+| Register | Type | Bit Position | Flag Name | Description |
+|----------|------|--------------|-----------|-------------|
+| 30011 | Major Protection #4 | 0 | e-stop | Emergency stop |
+| 30011 | Major Protection #4 | 1 | rack ChgOC#2 | Rack charge overcurrent #2 |
+| 30011 | Major Protection #4 | 2 | rack DchgOC#2 | Rack discharge overcurrent #2 |
+| 30011 | Major Protection #4 | 3 | rack DchgOC#3 | Rack discharge overcurrent #3 |
+| 30011 | Major Protection #4 | 4 | rack DchgOC#4 | Rack discharge overcurrent #4 |
+| 30011 | Major Protection #4 | 5 | Reserved | Reserved |
+| 30011 | Major Protection #4 | 6 | iterative_cell_balancing | Iterative cell balancing |
+| 30012 | Major Protection #3 | 0 | mccb fail | MCCB failure |
+| 30012 | Major Protection #3 | 1 | mccb sensing fail | MCCB sensing failure |
+| 30013 | Major Protection #2 | 0 | module V Sensing | Module voltage sensing |
+| 30013 | Major Protection #2 | 1 | current-ic failure | Current IC failure |
+| 30014 | Major Protection #1 | 0 | module UT | Module under temperature |
+| 30014 | Major Protection #1 | 1 | module OT | Module over temperature |
+| 30014 | Major Protection #1 | 2 | module UV | Module under voltage |
+| 30014 | Major Protection #1 | 3 | module OV | Module over voltage |
+| 30014 | Major Protection #1 | 4 | module V-imb | Module voltage imbalance |
+| 30014 | Major Protection #1 | 5 | module T-imb | Module temperature imbalance |
+| 30014 | Major Protection #1 | 6 | R-M comm fail | Rack-Master communication failure |
+| 30014 | Major Protection #1 | 7 | R-S comm fail | Rack-Slave communication failure |
+| 30014 | Major Protection #1 | 8 | rack ChgOC | Rack charge overcurrent |
+| 30014 | Major Protection #1 | 9 | rack DchgOC | Rack discharge overcurrent |
+| 30014 | Major Protection #1 | 10 | rack UV | Rack under voltage |
+| 30014 | Major Protection #1 | 11 | rack OV | Rack over voltage |
+| 30014 | Major Protection #1 | 12 | rack V sensing diff | Rack voltage sensing difference |
+| 30014 | Major Protection #1 | 13 | rack I senser fail | Rack current sensor failure |
+| 30014 | Major Protection #1 | 14 | rack fuse fail | Rack fuse failure |
+| 30014 | Major Protection #1 | 15 | permanent uv | Permanent under voltage |
+
+### **Rack Protection & Alarm Bit Fields**
+
+| Register | Type | Bit Position | Flag Name | Description |
+|----------|------|--------------|-----------|-------------|
+| 30053 | Major Protection #4 | 0 | rack OC2 | Rack overcurrent #2 |
+| 30053 | Major Protection #4 | 1 | rack Dch OC2 | Rack discharge overcurrent #2 |
+| 30053 | Major Protection #4 | 2 | rack Dch DC3 | Rack discharge DC #3 |
+| 30053 | Major Protection #4 | 3 | rack Dch OCM | Rack discharge overcurrent M |
+| 30054 | Major Protection #3 | 0 | rack V sensing fail | Rack voltage sensing failure |
+| 30055 | Major Protection #2 | 0 | rack V sensing fail | Rack voltage sensing failure |
+| 30056 | Major Protection #1 | 0 | rack OC2 | Rack overcurrent #2 |
+| 30056 | Major Protection #1 | 1 | rack Dch OC2 | Rack discharge overcurrent #2 |
+| 30056 | Major Protection #1 | 2 | rack Dch DC3 | Rack discharge DC #3 |
+| 30056 | Major Protection #1 | 3 | rack Dch OCM | Rack discharge overcurrent M |
+| 30056 | Major Protection #1 | 4 | rack UV | Rack under voltage |
+| 30056 | Major Protection #1 | 5 | rack OV | Rack over voltage |
+| 30056 | Major Protection #1 | 6 | rack V sensing fail | Rack voltage sensing failure |
+| 30056 | Major Protection #1 | 7 | permanent rack fuse fail | Permanent rack fuse failure |
+
+**Note:** Minor Protection and Alarm registers use the same bit field structure as their corresponding Major Protection registers.
+
+## 🧪 **Testing**
+
+### **Modbus Testing**
+```bash
+# Test PV1 system
+modpoll -m tcp -a 1 -r 32016 -c 10 localhost 10502
+
+# Test PV2 system  
+modpoll -m tcp -a 1 -r 32016 -c 10 localhost 10503
+
+# Test Battery system (System level)
+modpoll -m tcp -a 1 -r 30002 -c 10 localhost 10504
+
+# Test Battery system (Rack level)
+modpoll -m tcp -a 1 -r 30041 -c 10 localhost 10504
+
+# Test specific rack parameters
+modpoll -m tcp -a 1 -r 30050 -c 5 localhost 10504  # Rack mode, SOC, SOH
+modpoll -m tcp -a 1 -r 30065 -c 10 localhost 10504 # Cell voltage monitoring
+modpoll -m tcp -a 1 -r 30074 -c 10 localhost 10504 # Cell temperature monitoring
+```
+
+### **Web Dashboard Testing**
+1. Open http://localhost:3000
+2. Verify real-time data updates
+3. Check all system parameters
+4. Test alarm conditions
+
+## 📁 **Project Structure**
+pv-simulator-nodejs/
+├── src/
+│ ├── simulators/ # Solar and battery calculators
+│ ├── modbus/ # Modbus TCP servers
+│ ├── web/ # Web dashboard and API
+│ ├── data/ # Data processing and storage
+│ └── utils/ # Utility functions
+├── config/ # Configuration files
+├── public/ # Static web assets
+├── views/ # HTML templates
+├── package.json
+├── .env
+└── README.md
+
+## 🔧 **Development**
+
+### **Start Development Server**
+```bash
+npm run dev
+```
+
+### **Run Tests**
+```bash
+npm test
+```
+
+### **Build for Production**
+```bash
+npm run build
+```
+
+## 📝 **API Endpoints**
+
+### **System Data**
+- `GET /api/pv1/data` - PV1 system data
+- `GET /api/pv2/data` - PV2 system data  
+- `GET /api/battery/data` - Battery system data
+- `GET /api/all/data` - All systems data
+
+### **Configuration**
+- `GET /api/config` - System configuration
+- `POST /api/config` - Update configuration
+- `GET /api/status` - System status
+
+## 🚀 **Deployment**
+
+### **Local Development**
+```bash
+npm start
+```
+
+### **Production Deployment**
+```bash
+npm run build
+npm run start:prod
+```
+
+### **Docker Deployment**
+```bash
+docker build -t pv-simulator .
+docker run -p 3000:3000 -p 10502:10502 -p 10503:10503 -p 10504:10504 pv-simulator
+```
+
+## 📞 **Support**
+
+For issues and questions:
+- Check the troubleshooting section
+- Review the API documentation
+- Check system logs
+
+## 📄 **License**
+
+MIT License - see LICENSE file for details

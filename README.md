@@ -32,6 +32,15 @@ A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS)
   - Negative load power = consumption
 - **SOC Tracking**: State of Charge monitoring and management
 
+### **🚨 Alarm System Features**
+- **Random Alarm Triggers**: Alarms trigger every 2 minutes automatically
+- **Alarm Duration**: Each alarm lasts for 10 seconds before auto-clearing
+- **Real-time Monitoring**: Console logging and API data integration
+- **Battery Alarms**: 12 different alarm types including overvoltage, overtemperature, cell imbalance, etc.
+- **PV Alarms**: 8 different alarm types including MPPT faults, grid faults, isolation faults, etc.
+- **Modbus Integration**: Alarm states reflected in protection and alarm registers
+- **API Access**: Alarm status available through REST API endpoints
+
 ## 🌐 **Access URLs**
 
 - **Web Dashboard**: http://localhost:3000
@@ -269,6 +278,62 @@ Edit `config/modbus-config.js` to modify:
 
 **Note:** Minor Protection and Alarm registers use the same bit field structure as their corresponding Major Protection registers.
 
+## 🚨 **Alarm System Details**
+
+### **Alarm Trigger Schedule**
+- **Frequency**: Every 2 minutes (120 seconds)
+- **Duration**: 10 seconds per alarm
+- **Auto-clear**: Alarms automatically clear after duration expires
+- **Random Selection**: Alarm types are randomly selected from available types
+
+### **Battery Alarm Types**
+| Alarm Type | Code | Description | Protection Level |
+|------------|------|-------------|------------------|
+| `overvoltage` | 0x2001 | Battery voltage exceeds safe limits | Major |
+| `undervoltage` | 0x2002 | Battery voltage below minimum threshold | Major |
+| `overtemperature` | 0x2003 | Cell temperature too high | Major |
+| `undertemperature` | 0x2004 | Cell temperature too low | Minor |
+| `overcurrent` | 0x2005 | Current exceeds safe limits | Major |
+| `communication_error` | 0x2006 | Communication failure | Minor |
+| `cell_imbalance` | 0x2007 | Cell voltage imbalance detected | Major |
+| `isolation_fault` | 0x2008 | Isolation resistance fault | Major |
+| `ground_fault` | 0x2009 | Ground fault detected | Major |
+| `thermal_runaway` | 0x200A | Thermal runaway condition | Major |
+| `low_soc` | 0x200B | State of charge too low | Minor |
+| `high_soc` | 0x200C | State of charge too high | Minor |
+
+### **PV Alarm Types**
+| Alarm Type | Code | Description | Protection Level |
+|------------|------|-------------|------------------|
+| `overvoltage` | 0x1001 | DC voltage exceeds safe limits | Major |
+| `undervoltage` | 0x1002 | DC voltage below minimum threshold | Major |
+| `overtemperature` | 0x1003 | Inverter temperature too high | Major |
+| `communication_error` | 0x1004 | Communication failure | Minor |
+| `mppt_fault` | 0x1005 | MPPT tracking fault | Major |
+| `grid_fault` | 0x1006 | Grid connection fault | Major |
+| `isolation_fault` | 0x1007 | Isolation resistance fault | Major |
+| `ground_fault` | 0x1008 | Ground fault detected | Major |
+
+### **API Alarm Data**
+All alarm information is available through the REST API:
+
+```json
+{
+  "alarm_active": true,
+  "alarm_type": "overtemperature",
+  "alarm_code": 8195
+}
+```
+
+### **Console Monitoring**
+The system logs all alarm events to the console:
+```
+🚨 PV Alarm triggered: overvoltage
+✅ PV Alarm cleared: overvoltage
+🚨 Battery Alarm triggered: cell_imbalance
+✅ Battery Alarm cleared: cell_imbalance
+```
+
 ## 🧪 **Testing**
 
 ### **Modbus Testing**
@@ -296,6 +361,26 @@ modpoll -m tcp -a 1 -r 30074 -c 10 localhost 10504 # Cell temperature monitoring
 2. Verify real-time data updates
 3. Check all system parameters
 4. Test alarm conditions
+
+### **Alarm System Testing**
+```bash
+# Monitor alarm events in console
+npm start
+
+# Test alarm data via API
+curl http://localhost:3000/api/pv1/data | jq '.data.alarm_active'
+curl http://localhost:3000/api/battery/data | jq '.data.alarm_active'
+
+# Test alarm registers via Modbus
+modpoll -m tcp -a 1 -r 30011 -c 12 localhost 10504  # Battery protection/alarm registers
+modpoll -m tcp -a 1 -r 30053 -c 12 localhost 10504  # Rack protection/alarm registers
+```
+
+### **Alarm Monitoring**
+- **Console Output**: Watch for `🚨` and `✅` alarm messages
+- **API Endpoints**: Check `/api/pv1/data`, `/api/pv2/data`, `/api/battery/data`
+- **Modbus Registers**: Monitor protection and alarm registers for bit changes
+- **Timing**: Alarms trigger every 2 minutes, last 10 seconds
 
 ## ✨ **Recent Improvements & Fixes**
 

@@ -1,6 +1,6 @@
 # PV Simulator - Pure Node.js Implementation
 
-A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS) simulator built with pure Node.js, providing Modbus TCP servers and real-time web dashboard.
+A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS) simulator built with pure Node.js, providing Modbus TCP servers and real-time web dashboard with proper electrical engineering sign conventions.
 
 ## 🚀 **What's Included**
 
@@ -10,20 +10,26 @@ A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS)
 - **Battery System**: 100kW PCS with 200kWh capacity (Port 10504)
 - **Real-time Web Dashboard**: Live monitoring and control interface
 - **REST API**: Programmatic access to all system data
+- **3-Phase Grid Monitoring**: Complete grid voltage and current simulation
 
 ### **Solar Calculator Features**
 - **Power Generation**: 50kW maximum per inverter
 - **MPPT Configuration**: 7 active channels (600V nominal) out of 24 total
-- **Grid Parameters**: 240V ± 1%, 50Hz ± 0.5%
+- **Grid Parameters**: 240V ± 1%, 50Hz ± 0.5% (3-phase)
 - **Energy Yield Tracking**: Daily and accumulated energy monitoring
 - **Temperature Simulation**: Realistic thermal modeling
-- **Alarm System**: 48 different alarm types with bitfield generation
+- **Proper Sign Conventions**: Positive current/power for generation
+- **Bounds Checking**: Prevents invalid values and division by zero
 
 ### **Battery System Features**
 - **PCS Capacity**: 100kW Power Conversion System
-- **Battery Capacity**: 200kWh energy storage
-- **Load Management**: Varying load between 50-80kW
-- **Grid Interaction**: Charging/discharging based on load demand
+- **Battery Capacity**: 200kWh energy storage (17 modules × 8 cells each)
+- **Peak Shaving**: Intelligent load management and grid interaction
+- **Cell-Level Monitoring**: Individual cell voltage and temperature tracking
+- **Proper Sign Conventions**: 
+  - Positive power = discharge (power flowing out of battery)
+  - Negative power = charge (power flowing into battery)
+  - Negative load power = consumption
 - **SOC Tracking**: State of Charge monitoring and management
 
 ## 🌐 **Access URLs**
@@ -44,25 +50,32 @@ A comprehensive solar photovoltaic (PV) and battery energy storage system (BESS)
 
 1. **Clone and Install**
    ```bash
-   git clone <repository-url>
-   cd pv-simulator-nodejs
+   git clone https://github.com/lionelmoh/cursor-nodejs-simulator.git
+   cd cursor-nodejs-simulator
    npm install
    ```
 
-2. **Configure Environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your settings
-   ```
-
-3. **Start the Simulator**
+2. **Start the Simulator**
    ```bash
    npm start
    ```
 
-4. **Access the Dashboard**
+3. **Access the Dashboard**
    - Open http://localhost:3000 in your browser
    - Monitor real-time data from all systems
+   - View 3-phase grid monitoring and cell-level battery data
+
+4. **Test Modbus Connections**
+   ```bash
+   # Test PV1 server
+   telnet localhost 10502
+   
+   # Test PV2 server  
+   telnet localhost 10503
+   
+   # Test Battery server
+   telnet localhost 10504
+   ```
 
 ## 🔧 **Configuration**
 
@@ -284,20 +297,66 @@ modpoll -m tcp -a 1 -r 30074 -c 10 localhost 10504 # Cell temperature monitoring
 3. Check all system parameters
 4. Test alarm conditions
 
+## ✨ **Recent Improvements & Fixes**
+
+### **Energy Flow Sign Conventions (Fixed)**
+- **PV Current/Power**: ✅ Positive (power flowing out of PV system)
+- **Battery Discharge**: ✅ Positive (power flowing out of battery)
+- **Battery Charge**: ✅ Negative (power flowing into battery)
+- **Load Power**: ✅ Negative (power consumption)
+- **Grid Power**: ✅ Positive when exporting, negative when importing
+
+### **Modbus Server Stability (Fixed)**
+- **Connection Stability**: ✅ No more disconnections
+- **Value Validation**: ✅ Prevents invalid data (Infinity, negative values)
+- **Bounds Checking**: ✅ All values within 16-bit unsigned integer range (0-65535)
+- **Error Handling**: ✅ Robust error responses and recovery
+
+### **Battery System Enhancements**
+- **Cell-Level Monitoring**: ✅ 17 modules × 8 Lithium NMC cells each (136 total cells)
+- **Peak Shaving Logic**: ✅ Intelligent load management and grid interaction
+- **3-Phase Grid Simulation**: ✅ Complete voltage and current monitoring
+- **Real-time Data**: ✅ Live SOC, SOH, voltage, current, and temperature tracking
+
+### **PV System Improvements**
+- **MPPT Current Calculation**: ✅ Fixed division by zero and bounds checking
+- **Realistic Power Generation**: ✅ Proper solar irradiance simulation
+- **Temperature Modeling**: ✅ Accurate thermal calculations
+- **Efficiency Tracking**: ✅ Real-time inverter efficiency monitoring
+
 ## 📁 **Project Structure**
-pv-simulator-nodejs/
+```
+cursor-nodejs-simulator/
 ├── src/
-│ ├── simulators/ # Solar and battery calculators
-│ ├── modbus/ # Modbus TCP servers
-│ ├── web/ # Web dashboard and API
-│ ├── data/ # Data processing and storage
-│ └── utils/ # Utility functions
-├── config/ # Configuration files
-├── public/ # Static web assets
-├── views/ # HTML templates
+│   ├── simulators/          # Solar and battery calculators
+│   │   ├── solar-calculator.js
+│   │   └── battery-calculator.js
+│   ├── modbus/              # Modbus TCP servers
+│   │   ├── pv1-server.js
+│   │   ├── pv2-server.js
+│   │   ├── battery-server.js
+│   │   └── register-maps.js
+│   ├── utils/               # Utility functions
+│   │   └── data-processor.js
+│   └── server.js            # Main Express server
+├── views/                   # EJS templates
+│   └── dashboard.ejs
+├── config/                  # Configuration files
+│   ├── system-config.js
+│   └── modbus-config.js
+├── deploy/                  # Deployment scripts
+│   ├── install.sh
+│   ├── start.sh
+│   ├── update.sh
+│   ├── control.sh
+│   ├── deploy.ps1
+│   ├── deploy.bat
+│   └── pv-simulator.service
 ├── package.json
-├── .env
-└── README.md
+├── test-system.js
+├── README.md
+└── SETUP.md
+```
 
 ## 🔧 **Development**
 

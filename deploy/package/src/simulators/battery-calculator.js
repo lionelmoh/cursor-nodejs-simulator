@@ -70,6 +70,30 @@ class BatteryCalculator {
         // Initialize current data
         this.currentData = {};
         
+        // Alarm system
+        this.alarmSystem = {
+            isActive: false,
+            alarmType: null,
+            startTime: 0,
+            duration: 10000, // 10 seconds in milliseconds
+            triggerInterval: 120000, // 2 minutes in milliseconds
+            lastTrigger: 0,
+            alarmTypes: [
+                'overvoltage',
+                'undervoltage',
+                'overtemperature',
+                'undertemperature',
+                'overcurrent',
+                'communication_error',
+                'cell_imbalance',
+                'isolation_fault',
+                'ground_fault',
+                'thermal_runaway',
+                'low_soc',
+                'high_soc'
+            ]
+        };
+        
         // Start the simulation
         this.startSimulation();
     }
@@ -78,6 +102,11 @@ class BatteryCalculator {
         // Start data generation
         setInterval(() => {
             this.updateData();
+        }, 1000);
+        
+        // Start alarm system
+        setInterval(() => {
+            this.updateAlarmSystem();
         }, 1000);
     }
 
@@ -183,19 +212,24 @@ class BatteryCalculator {
             pcsEfficiency: Math.round(this.pcsEfficiency * 1000), // 0.1% units
             pcsTemperature: Math.round(this.pcsTemperature * 10), // 0.1°C units
             
-            // Protection and alarm flags (simplified for now)
-            majorProtection1: 0,
-            majorProtection2: 0,
-            majorProtection3: 0,
-            majorProtection4: 0,
-            minorProtection1: 0,
-            minorProtection2: 0,
-            minorProtection3: 0,
-            minorProtection4: 0,
-            alarm1: 0,
-            alarm2: 0,
-            alarm3: 0,
-            alarm4: 0
+            // Protection and alarm flags
+            majorProtection1: this.getMajorProtection(1),
+            majorProtection2: this.getMajorProtection(2),
+            majorProtection3: this.getMajorProtection(3),
+            majorProtection4: this.getMajorProtection(4),
+            minorProtection1: this.getMinorProtection(1),
+            minorProtection2: this.getMinorProtection(2),
+            minorProtection3: this.getMinorProtection(3),
+            minorProtection4: this.getMinorProtection(4),
+            alarm1: this.getAlarm(1),
+            alarm2: this.getAlarm(2),
+            alarm3: this.getAlarm(3),
+            alarm4: this.getAlarm(4),
+            
+            // Alarm system data
+            alarm_active: this.alarmSystem.isActive,
+            alarm_type: this.alarmSystem.alarmType,
+            alarm_code: this.getAlarmCode()
         };
     }
 
@@ -467,6 +501,12 @@ class BatteryCalculator {
         // Reset cell arrays
         this.cellVoltages.fill(this.cellNominalVoltage);
         this.cellTemperatures.fill(25);
+        
+        // Reset alarm system
+        this.alarmSystem.isActive = false;
+        this.alarmSystem.alarmType = null;
+        this.alarmSystem.startTime = 0;
+        this.alarmSystem.lastTrigger = 0;
     }
 
     setSOC(soc) {
@@ -487,6 +527,113 @@ class BatteryCalculator {
 
     setPeakShavingPower(power) {
         this.peakShavingPower = Math.max(0, Math.min(power, this.pcsCapacity));
+    }
+    
+    updateAlarmSystem() {
+        const now = Date.now();
+        
+        // Check if we should trigger a new alarm
+        if (!this.alarmSystem.isActive && 
+            (now - this.alarmSystem.lastTrigger) >= this.alarmSystem.triggerInterval) {
+            this.triggerRandomAlarm();
+        }
+        
+        // Check if current alarm should expire
+        if (this.alarmSystem.isActive && 
+            (now - this.alarmSystem.startTime) >= this.alarmSystem.duration) {
+            this.clearAlarm();
+        }
+    }
+    
+    triggerRandomAlarm() {
+        const randomIndex = Math.floor(Math.random() * this.alarmSystem.alarmTypes.length);
+        this.alarmSystem.alarmType = this.alarmSystem.alarmTypes[randomIndex];
+        this.alarmSystem.isActive = true;
+        this.alarmSystem.startTime = Date.now();
+        this.alarmSystem.lastTrigger = Date.now();
+        
+        console.log(`🚨 Battery Alarm triggered: ${this.alarmSystem.alarmType}`);
+    }
+    
+    clearAlarm() {
+        console.log(`✅ Battery Alarm cleared: ${this.alarmSystem.alarmType}`);
+        this.alarmSystem.isActive = false;
+        this.alarmSystem.alarmType = null;
+        this.alarmSystem.startTime = 0;
+    }
+    
+    getAlarmCode() {
+        if (!this.alarmSystem.isActive) return 0;
+        
+        const alarmCodes = {
+            'overvoltage': 0x2001,
+            'undervoltage': 0x2002,
+            'overtemperature': 0x2003,
+            'undertemperature': 0x2004,
+            'overcurrent': 0x2005,
+            'communication_error': 0x2006,
+            'cell_imbalance': 0x2007,
+            'isolation_fault': 0x2008,
+            'ground_fault': 0x2009,
+            'thermal_runaway': 0x200A,
+            'low_soc': 0x200B,
+            'high_soc': 0x200C
+        };
+        
+        return alarmCodes[this.alarmSystem.alarmType] || 0;
+    }
+    
+    getMajorProtection(number) {
+        if (!this.alarmSystem.isActive) return 0;
+        
+        // Map alarm types to major protection bits
+        const majorProtectionMap = {
+            'overvoltage': 1,
+            'undervoltage': 2,
+            'overtemperature': 4,
+            'overcurrent': 8,
+            'thermal_runaway': 16,
+            'isolation_fault': 32,
+            'ground_fault': 64,
+            'cell_imbalance': 128
+        };
+        
+        const bitValue = majorProtectionMap[this.alarmSystem.alarmType] || 0;
+        return (bitValue >> (number - 1)) & 1;
+    }
+    
+    getMinorProtection(number) {
+        if (!this.alarmSystem.isActive) return 0;
+        
+        // Map alarm types to minor protection bits
+        const minorProtectionMap = {
+            'undertemperature': 1,
+            'low_soc': 2,
+            'high_soc': 4,
+            'communication_error': 8
+        };
+        
+        const bitValue = minorProtectionMap[this.alarmSystem.alarmType] || 0;
+        return (bitValue >> (number - 1)) & 1;
+    }
+    
+    getAlarm(number) {
+        if (!this.alarmSystem.isActive) return 0;
+        
+        // Map alarm types to alarm bits
+        const alarmMap = {
+            'overvoltage': 1,
+            'undervoltage': 2,
+            'overtemperature': 4,
+            'undertemperature': 8,
+            'overcurrent': 16,
+            'communication_error': 32,
+            'cell_imbalance': 64,
+            'isolation_fault': 128
+        };
+        
+        const bitValue = alarmMap[this.alarmSystem.alarmType] || 0;
+        return (bitValue >> (number - 1)) & 1;
     }
 }
 

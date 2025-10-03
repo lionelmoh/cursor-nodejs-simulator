@@ -30,6 +30,26 @@ class SolarCalculator {
         // Initialize current data
         this.currentData = {};
         
+        // Alarm system
+        this.alarmSystem = {
+            isActive: false,
+            alarmType: null,
+            startTime: 0,
+            duration: 10000, // 10 seconds in milliseconds
+            triggerInterval: 120000, // 2 minutes in milliseconds
+            lastTrigger: 0,
+            alarmTypes: [
+                'overvoltage',
+                'undervoltage', 
+                'overtemperature',
+                'communication_error',
+                'mppt_fault',
+                'grid_fault',
+                'isolation_fault',
+                'ground_fault'
+            ]
+        };
+        
         // Start the simulation
         this.startSimulation();
     }
@@ -42,6 +62,11 @@ class SolarCalculator {
         // Start data generation
         setInterval(() => {
             this.updateData();
+        }, 1000);
+        
+        // Start alarm system
+        setInterval(() => {
+            this.updateAlarmSystem();
         }, 1000);
     }
 
@@ -132,7 +157,12 @@ class SolarCalculator {
             daily_energy_yield: this.dailyEnergyYield,
             monthly_energy_yield: this.monthlyEnergyYield,
             yearly_energy_yield: this.yearlyEnergyYield,
-            accumulated_energy_yield: this.accumulatedEnergyYield
+            accumulated_energy_yield: this.accumulatedEnergyYield,
+            
+            // Alarm data
+            alarm_active: this.alarmSystem.isActive,
+            alarm_type: this.alarmSystem.alarmType,
+            alarm_code: this.getAlarmCode()
         };
     }
 
@@ -273,6 +303,56 @@ class SolarCalculator {
         };
     }
 
+    updateAlarmSystem() {
+        const now = Date.now();
+        
+        // Check if we should trigger a new alarm
+        if (!this.alarmSystem.isActive && 
+            (now - this.alarmSystem.lastTrigger) >= this.alarmSystem.triggerInterval) {
+            this.triggerRandomAlarm();
+        }
+        
+        // Check if current alarm should expire
+        if (this.alarmSystem.isActive && 
+            (now - this.alarmSystem.startTime) >= this.alarmSystem.duration) {
+            this.clearAlarm();
+        }
+    }
+    
+    triggerRandomAlarm() {
+        const randomIndex = Math.floor(Math.random() * this.alarmSystem.alarmTypes.length);
+        this.alarmSystem.alarmType = this.alarmSystem.alarmTypes[randomIndex];
+        this.alarmSystem.isActive = true;
+        this.alarmSystem.startTime = Date.now();
+        this.alarmSystem.lastTrigger = Date.now();
+        
+        console.log(`🚨 PV Alarm triggered: ${this.alarmSystem.alarmType}`);
+    }
+    
+    clearAlarm() {
+        console.log(`✅ PV Alarm cleared: ${this.alarmSystem.alarmType}`);
+        this.alarmSystem.isActive = false;
+        this.alarmSystem.alarmType = null;
+        this.alarmSystem.startTime = 0;
+    }
+    
+    getAlarmCode() {
+        if (!this.alarmSystem.isActive) return 0;
+        
+        const alarmCodes = {
+            'overvoltage': 0x1001,
+            'undervoltage': 0x1002,
+            'overtemperature': 0x1003,
+            'communication_error': 0x1004,
+            'mppt_fault': 0x1005,
+            'grid_fault': 0x1006,
+            'isolation_fault': 0x1007,
+            'ground_fault': 0x1008
+        };
+        
+        return alarmCodes[this.alarmSystem.alarmType] || 0;
+    }
+
     reset() {
         this.dailyEnergy = 0;
         this.monthlyEnergy = 0;
@@ -285,6 +365,12 @@ class SolarCalculator {
         this.totalRuntime = 0;
         this.startupTime = 0;
         this.shutdownTime = 0;
+        
+        // Reset alarm system
+        this.alarmSystem.isActive = false;
+        this.alarmSystem.alarmType = null;
+        this.alarmSystem.startTime = 0;
+        this.alarmSystem.lastTrigger = 0;
     }
 }
 
